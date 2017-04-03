@@ -1,0 +1,2 @@
+rm *pyc
+export PATH=$PATH:./:`pwd`/bin/

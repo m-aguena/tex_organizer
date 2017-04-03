@@ -14,6 +14,7 @@ The main idea is to create a a flattened version of your .bib file (`file.flat.b
 The `file.flat.bib` will be your main file,
 where you make the editions that will be later converted back to your original `file.bib`.
 
+### Basic Use
 
 1.Run the basic command that creates a file `file.flat.bib` containing a flattened version of your .bib file:
 
@@ -40,6 +41,32 @@ You can also use this moment to edit `file.flat.bib` and organize the order of y
 
 **Now organizing the .bib references in your life will be easier :)**
 
-**NOTE:** If you use `vim` as your file editor,
+**NOTES:** 
+
+* If you use `vim` as your file editor,
 using the command `:set nowrap` when viewing `file.flat.bib` 
 can be very helpful to stop `vim` from breaking lines.
+
+* The code does not have to be run inside the main directory (`bib_organizer/`),
+you can just add the path of the main directory and run `python path_to_bib_organizer/flat_bib.py`
+
+* The code does not have to be run inside the directory of the .bib file,
+you can just add the path of the .bib file and run `python flat_bib.py path_to_bibfile/file.bib`
+
+* You can combine both items above: `python path_to_bib_organizer/flat_bib.py path_to_bibfile/file.bib`
+
+* If you give executable permition to the `flat_bib.py` (`chmod u+x flat_bib.py`),
+you do not have to run `python` before `flat_bib.py`.
+
+### Adding to your paths
+
+Another option is to add the code path to your paths by going inside the main directory (`bib_organizer/`)
+and running:
+
+    . SOURCE
+
+or
+
+    source SOURCE
+
+Then you can simply call `flat_bib` from anywhere instead of running `python path_to_bib_organizer/flat_bib.py`.
