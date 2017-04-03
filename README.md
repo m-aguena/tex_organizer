@@ -15,7 +15,7 @@ The `file.flat.bib` will be your main file,
 where you make the editions that will be later converted back to your original `file.bib`.
 
 
-**1.**Run the basic command that creates a file `file.flat.bib` containing a flattened version of your .bib file:
+1.Run the basic command that creates a file `file.flat.bib` containing a flattened version of your .bib file:
 
 
     python flat_bib.py file.bib
@@ -26,15 +26,15 @@ so you should make your comments with these prefixes.
 Alternatively,
 you can just add any other prefixes by inserting them into the array `break_line` at line 4 of `flat_bib.py`. 
 
-**2.**Run the command to create a file `file.sort.bib` with the bib sorted by author name.
+2.Run the command to create a file `file.sort.bib` with the bib sorted by author name.
 (This command will also create a `file.flat.bib` file if it does not exist.)
 
     python flat_bib.py file.bib -t s
 
-**3.**Check for repeated references in `file.sort.bib` and fix it in `file.flat.bib`.
+3.Check for repeated references in `file.sort.bib` and fix it in `file.flat.bib`.
 You can also use this moment to edit `file.flat.bib` and organize the order of your references.
 
-**4.**Run the command to convert `file.flat.bib` back to the original .bib file.
+4.Run the command to convert `file.flat.bib` back to the original .bib file.
 
     python flat_bib.py file.bib -t u
 
