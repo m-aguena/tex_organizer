@@ -3,7 +3,7 @@ from __future__ import print_function
 
 break_line = ['@','%-','% *']
 
-def flat(bib, bibf, bibs):
+def flat(bib, bibf, bibs, field):
 
     d_in = bib
     d_ou = bibf
@@ -27,7 +27,7 @@ def flat(bib, bibf, bibs):
         print(l,file=out,end='')
     out.close()
 
-def un_flat(bib, bibf, bibs):
+def un_flat(bib, bibf, bibs, field):
 
     d_in = bibf
     d_ou = bib
@@ -76,7 +76,7 @@ def un_flat(bib, bibf, bibs):
         print(l,file=out,end='')
     out.close()
 
-def resort(bib, bibf, bibs):
+def resort(bib, bibf, bibs, field):
 
     d_in = bibf
     d_ou = bibs
@@ -102,7 +102,7 @@ def resort(bib, bibf, bibs):
                 it = 0
                 for i,l in enumerate(line):
                     #if l[1:6]=='title': it = i
-                    if 'adsurl' in l:it = i
+                    if field in l:it = i
                 DIC.append([name,line[0]+''.join([' ' for i in range(40-len(line[0]))])+','+line[it]+'}'])
     
     DIC = sorted(DIC,key = lambda DIC:DIC[0] )
@@ -134,11 +134,12 @@ def resort(bib, bibf, bibs):
 
 funcs = {'f':flat,'u':un_flat,'s':resort}
 
-if __name__=='__main__':
+def run():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('fname', metavar='N', nargs=1,help='name of bib file')
-    parser.add_argument('-t','--type',dest='typ',default='f',help='select function: flatten(f), unflatten(u) or sort(s) ')
+    parser.add_argument('-t','--type',dest='typ',default='f',help='select function: flatten(f), unflatten(u) or sort(s)')
+    parser.add_argument('-f','--field',dest='field',default='title',help='select field for sorted bib')
 
     bib  = parser.parse_args().fname[0]
     bibv = bib.split('.')
@@ -148,4 +149,8 @@ if __name__=='__main__':
 
     func = funcs[ parser.parse_args().typ ]
 
-    func(bib, bibf, bibs)
+    func(bib, bibf, bibs, parser.parse_args().field )
+
+if __name__=='__main__':
+
+    run()

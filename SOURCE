@@ -1,2 +1,2 @@
-rm *pyc
+rm -f *pyc
 export PATH=$PATH:./:`pwd`/bin/

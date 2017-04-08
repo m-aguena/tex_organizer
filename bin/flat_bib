@@ -9,20 +9,6 @@ if __name__=='__main__':
     import sys
     sys.path.append(path)
     
-    from flat_bib import *
+    from flat_bib import run
 
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('fname', metavar='N', nargs=1,help='name of bib file')
-    parser.add_argument('-t','--type',dest='typ',default='f',help='select function: flatten(f), unflatten(u) or sort(s) ')
-
-
-    bib  = parser.parse_args().fname[0]
-    bibv = bib.split('.')
-    bibf = '.'.join(bibv[:-1]+['flat',bibv[-1]])
-    bibs = '.'.join(bibv[:-1]+['sort',bibv[-1]])
-
-
-    func = funcs[ parser.parse_args().typ ]
-
-    func(bib, bibf, bibs)
+    run()

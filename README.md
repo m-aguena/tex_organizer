@@ -32,6 +32,10 @@ you can just add any other prefixes by inserting them into the array `break_line
 
     python flat_bib.py file.bib -t s
 
+By default, the sorted file only displays the reference name and title field.
+If you want to change the field displayed to a certain `FIELD_NAME`, 
+add the key `-f FIELD_NAME`.
+
 3.Check for repeated references in `file.sort.bib` and fix it in `file.flat.bib`.
 You can also use this moment to edit `file.flat.bib` and organize the order of your references.
 
