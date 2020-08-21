@@ -1,6 +1,6 @@
 # bib_organizer
 
-* [Main readme](README.md)
+* [Main readme](../README.md)
 
 Code to facilitate on the organization of .bib files and check for repeated references.
 
