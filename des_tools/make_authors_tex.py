@@ -127,6 +127,9 @@ class ProcessData:
         for i in main_aff_inds:
             print(self.data["Affiliation"][i])
 
+        self._set_affiliations()
+
+    def _set_affiliations(self):
         self.main_affiliation = [
             self.data["Affiliation"][i] for i in self.main_aff_inds
         ]
@@ -192,13 +195,13 @@ class ProcessData:
     def load_config(self, filename):
         with open(filename, "r", encoding="UTF-8") as file_handle:
             config = yaml.load(file_handle, Loader=yaml.FullLoader)
+        print("Loading:")
         for k, v in config.items():
             setattr(self, k, v)
-            print(k, v)
+            print(f"    {k} = {v}")
         self.read_data(self.input_file)
         self._set_other_authors()
-        self._set_other_affiliation()
-        self._set_affiliation_dict()
+        self._set_affiliations()
 
     def save_config(self, filename):
         config = {
@@ -206,7 +209,7 @@ class ProcessData:
             for k in (
                 "input_file",
                 "main_authors",
-                "main_affiliation",
+                "main_aff_inds",
                 "output_type",
                 "output_filename",
             )
