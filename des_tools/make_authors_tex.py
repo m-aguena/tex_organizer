@@ -138,7 +138,7 @@ class ProcessData:
 
     def _get_formated_author_list(self, typ=1):
         _fmt_ref = {
-            1: lambda ref: f"\\inst{{{ref}}}",
+            1: lambda ref: f" \\inst{{{ref}}}",
             2: lambda ref: f"$^{{{ref}}}$",
         }[typ]
 
@@ -159,7 +159,7 @@ class ProcessData:
                 ]
             )
             fmt_author_list.append(
-                f"{firstname} {author} {_fmt_ref(','.join(sorted(aff)))}"
+                f"{firstname} {author}{_fmt_ref(','.join(sorted(aff)))}"
             )
         return fmt_author_list
 
