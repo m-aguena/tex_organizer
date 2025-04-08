@@ -3,6 +3,7 @@
 
 import numpy as np
 from astropy.table import Table
+import yaml
 
 
 def smart_split(line):
@@ -43,12 +44,16 @@ class ProcessData:
     def authors(self):
         return self.main_authors + self.other_authors
 
-    def __init__(self, input_file):
+    def __init__(self, input_file=None):
         self.main_authors = []
         self.main_affiliation = []
         self.other_authors = []
         self.other_affiliation = []
-        self.read_data(input_file)
+        self.output_type = 1
+        self.output_filename = "authors.tex"
+        if input_file is not None:
+            self.input_file = input_file
+            self.read_data(self.input_file)
 
     def _read_data(self, input_file):
         return [d.replace("\n", "") for d in open(input_file).readlines()]
@@ -156,12 +161,16 @@ class ProcessData:
         return fmt_author_list
 
     def write_tex(self, typ=1, filename="authors.tex"):
-        _fmt_author_list = self._get_formated_author_list(typ)
-        out = f"\\author{{\n{prt_command(_fmt_author_list)}\n}}"
-        if typ == 1:
-            out += f"\n\\institute{{\n{prt_command(self.affiliations)}\n}}"
+        self.output_type = typ
+        self.output_filename = filename
+        self._write_tex()
 
-        elif typ == 2:
+    def _write_tex(self):
+        _fmt_author_list = self._get_formated_author_list(self.output_type)
+        out = f"\\author{{\n{prt_command(_fmt_author_list)}\n}}"
+        if self.output_type == 1:
+            out += f"\n\\institute{{\n{prt_command(self.affiliations)}\n}}"
+        elif self.output_type == 2:
             affiliations_enum = "\n \\\\".join(
                 [f"{i+1:3}. {aff}" for i, aff in enumerate(self.affiliations)]
             )
@@ -170,7 +179,7 @@ class ProcessData:
                 f"\n\\newcommand{{\\institutes}}{{\n{affiliations_enum}\n}}"
             )
 
-        f = open(filename, "w")
+        f = open(self.output_filename, "w")
         print(out, file=f)
         f.close()
 
@@ -180,12 +189,38 @@ class ProcessData:
             print(e, file=f)
         f.close()
 
+    def load_config(self, filename):
+        with open(filename, "r", encoding="UTF-8") as file_handle:
+            config = yaml.load(file_handle, Loader=yaml.FullLoader)
+        for k, v in config.items():
+            setattr(self, k, v)
+            print(k, v)
+        self.read_data(self.input_file)
+        self._set_other_authors()
+        self._set_other_affiliation()
+        self._set_affiliation_dict()
+
+    def save_config(self, filename):
+        config = {
+            k: getattr(self, k)
+            for k in (
+                "input_file",
+                "main_authors",
+                "main_affiliation",
+                "output_type",
+                "output_filename",
+            )
+        }
+        with open(filename, "w", encoding="UTF-8") as file_handle:
+            yaml.dump(config, file_handle)
+
 
 class ProcessDataIter:
-    def __init__(self):
+    def __init__(self, safe_mode=True):
         self.input_file = None
         self.outfile = None
         self.outfmt = None
+        self.safe_mode = safe_mode
 
     def read_data(self):
         print("Starting data processing")
@@ -202,6 +237,8 @@ class ProcessDataIter:
         return actions[action]()
 
     def confirm(self, action_func, value):
+        if not self.safe_mode:
+            return value
         _actions = {
             "y": lambda: value,
             "n": lambda: action_func(),
@@ -260,6 +297,13 @@ class ProcessDataIter:
             return True, value
         return False, None
 
+    def _valid_fmt_config_file(self, value):
+        if value == "":
+            return True, "config.yml"
+        elif value[-4:] == ".yml":
+            return True, value
+        return False, None
+
     def _valid_fmt_output_type(self, value):
         if value in {"1", "2"}:
             return True, int(value)
@@ -291,29 +335,32 @@ class ProcessDataIter:
 
     def set_main_authors(self):
         print("Setting main authors:")
-        message = (
-            " * Action [(s) Skip/(p) Print all authors/(w) Write main author list]: "
+        self.run_actions(
+            actions={
+                "s": self._pass,
+                "p": lambda: (self.pd.show_authors_list(), self._set_main_authors()),
+                "w": self._set_main_authors,
+            },
+            message=(
+                " * Action [(s) Skip/(p) Print all authors/(w) Write main author list]: "
+            ),
         )
-        _actions = {
-            "s": self._pass,
-            "p": lambda: (self.pd.show_authors_list(), self._set_main_authors()),
-            "w": self._set_main_authors,
-        }
-        self.run_actions(_actions, message=message)
 
     def set_main_affiliations(self):
         if not self.pd.main_authors:
             return
         print("Setting main affitiations: ")
-        message = " * Action [(s) Skip/(p) Print all main affiliations/(w) Write main affilitaion indexes]: "
-        _actions = {
-            "s": self._pass,
-            "p": lambda: (
-                self.pd.show_main_affiliations(),
-                self._set_main_affiliations(),
-            ),
-            "w": self._set_main_affiliations,
-        }
+        self.run_actions(
+            actions={
+                "s": self._pass,
+                "p": lambda: (
+                    self.pd.show_main_affiliations(),
+                    self._set_main_affiliations(),
+                ),
+                "w": self._set_main_affiliations,
+            },
+            message=" * Action [(s) Skip/(p) Print all main affiliations/(w) Write main affilitaion indexes]: ",
+        )
         self.run_actions(_actions, message=message)
 
     def set_output_file(self):
@@ -329,6 +376,20 @@ class ProcessDataIter:
     def write_tex(self):
         self.pd.write_tex(typ=self.output_type, filename=self.output_file)
 
+    def do_save_config(self):
+        return self.run_actions(
+            actions={
+                "y": lambda: True,
+                "n": lambda: False,
+            },
+            message="Save config [y/n]: ",
+        )
+
+    def set_config_file(self):
+        self.config_file = self.get_input(
+            "Output conifg file (defalt=config.yml): ", self._valid_fmt_config_file
+        )
+
     def write_emails(self):
         raise NotImplementedError()
 
@@ -341,6 +402,10 @@ class ProcessDataIter:
         self.set_output_file()
         print(f"Writting output to {self.output_file}")
         self.write_tex()
+        if self.do_save_config():
+            self.set_config_file()
+            print(f"Writting config to {self.config_file}")
+            self.pd.save_config(self.config_file)
 
 
 if __name__ == "__main__":
@@ -359,13 +424,19 @@ if __name__ == "__main__":
         action="store_true",
         help="Run in interactive mode.",
     )
+    parser.add_argument(
+        "-d",
+        "--disable_safe_mode",
+        default=False,
+        action="store_true",
+        help="Skips confirmation.",
+    )
     args = parser.parse_args()
 
     if args.interactive:
-        pdi = ProcessDataIter()
+        pdi = ProcessDataIter(safe_mode=args.disable_safe_mode == False)
         pdi.run()
-    else:
-        pd = ProcessData(input_file)
-        self.set_main_authors(main_authors)
-        self.set_main_affiliations(main_aff_inds)
-        self.write_tex(typ, filename=output)
+    elif args.config is not None:
+        pd = ProcessData()
+        pd.load_config(args.config)
+        pd._write_tex()
